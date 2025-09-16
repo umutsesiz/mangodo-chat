@@ -1,0 +1,4 @@
+@layer components {
+  .input { @apply w-full rounded-xl border px-3 py-2 outline-none focus:ring; }
+  .btn { @apply rounded-xl border px-3 py-2 font-medium hover:bg-black hover:text-white transition; }
+}
