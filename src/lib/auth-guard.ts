@@ -5,7 +5,7 @@ import { connectDB } from "./db";
 import { User } from "./models";
 
 export async function requireUser() {
-  const uid = await getUserIdFromCookie();   // <-- await EKLENDİ
+  const uid = await getUserIdFromCookie();
   if (!uid) return null;
   if (!mongoose.isValidObjectId(uid)) return null;
 
