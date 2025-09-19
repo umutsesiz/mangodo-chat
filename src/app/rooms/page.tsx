@@ -39,7 +39,10 @@ export default async function RoomsPage() {
   return (
     <main className="page">
       <div className="mx-auto max-w-3xl flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Odalar</h1>
+        <div className="flex items-center gap-3">
+          <Link href="/" className="btn btn-ghost">&larr; Geri</Link>
+          <h1 className="text-2xl font-semibold">Odalar</h1>
+        </div>
         <Link href="/rooms/new" className="btn btn-primary">Yeni Oda</Link>
       </div>
 

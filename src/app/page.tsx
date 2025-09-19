@@ -8,7 +8,7 @@ export default async function Home() {
   const user = me!;
 
   return (
-    <main className="min-h-screen grid place-items-center p-6">
+    <main className="min-h-[calc(100vh-96px)] grid place-items-center p-6">
       <div className="relative w-full max-w-xl">
         <div className="absolute inset-0 -z-10 rounded-3xl bg-gradient-to-r from-indigo-500/20 via-fuchsia-500/20 to-purple-500/20 blur-2xl opacity-70" />
         <div className="rounded-3xl p-px bg-gradient-to-r from-indigo-500/40 via-fuchsia-500/40 to-purple-500/40 shadow-2xl">

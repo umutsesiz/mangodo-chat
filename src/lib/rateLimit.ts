@@ -1,9 +1,7 @@
 type Bucket = { tokens: number; resetAt: number };
 
-// In-memory store
 const buckets = new Map<string, Bucket>();
 
-// Yardımcılar
 function parseWindowMs(window: `${number}${"s" | "m" | "h"}` | number) {
   if (typeof window === "number") return window;
   const n = parseInt(window);
@@ -23,11 +21,6 @@ export type RateResult = {
   headers: Record<string, string>;
 };
 
-/**
- * Düşük seviyeli: key’e göre token-bucket.
- * limit: pencere başına izinli istek sayısı
- * window: "60s" | "1m" | "1h" veya ms cinsinden number
- */
 export function rateLimitKey(
   key: string,
   { limit, window }: { limit: number; window: `${number}${"s" | "m" | "h"}` | number }
@@ -56,10 +49,6 @@ export function rateLimitKey(
   };
 }
 
-/**
- * Yüksek seviyeli: Request’e göre (IP + pathname) rate-limit.
- * Aynı IP’nin aynı endpoint’e vurmasını sınırlar.
- */
 export function rateLimitReq(
   req: Request,
   { limit, window, key }: { limit: number; window: `${number}${"s" | "m" | "h"}` | number; key?: string }
