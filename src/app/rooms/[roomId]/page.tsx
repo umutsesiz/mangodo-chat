@@ -35,7 +35,7 @@ export default async function RoomPage({
       </div>
 
       <div className="mx-auto max-w-3xl">
-        <ChatRoom roomId={roomId} me={me} /> {/* Büyük harf ve roomId değişkeni */}
+        <ChatRoom roomId={roomId} me={me} />
       </div>
     </main>
   );
