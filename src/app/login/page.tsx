@@ -4,18 +4,20 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
     if (cooldown <= 0) return;
-    const id = setInterval(() => setCooldown((s) => (s > 0 ? s - 1 : 0)), 1000);
+    const id = setInterval(() => {
+      setCooldown((s) => (s > 0 ? s - 1 : 0));
+    }, 1000);
     return () => clearInterval(id);
   }, [cooldown]);
 
@@ -25,16 +27,15 @@ export default function RegisterPage() {
       setErr(`Çok fazla deneme. ${cooldown} sn sonra tekrar deneyebilirsin.`);
       return;
     }
+
     setErr(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ email, password }),
       });
-
-      const j = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         if (res.status === 429) {
@@ -42,16 +43,18 @@ export default function RegisterPage() {
             parseInt(res.headers.get("retry-after") || "", 10) ||
             parseInt(res.headers.get("x-ratelimit-reset") || "", 10) ||
             0;
-          if (retryAfter > 0) setCooldown(retryAfter);
+          if (Number.isFinite(retryAfter) && retryAfter > 0) {
+            setCooldown(retryAfter);
+          }
+          const j = await res.json().catch(() => ({}));
           setErr(j?.error ?? "Çok fazla deneme. Lütfen biraz bekleyin.");
         } else {
-          setErr(j?.error ?? "Kayıt başarısız");
+          const j = await res.json().catch(() => ({}));
+          setErr(j?.error ?? "Giriş başarısız");
         }
-        return;
+      } else {
+        router.replace("/");
       }
-
-      const preview = j?.previewUrl ? `&p=${encodeURIComponent(j.previewUrl)}` : "";
-      router.replace(`/verify?email=${encodeURIComponent(email)}${preview}`);
     } catch {
       setErr("Bağlantı hatası");
     } finally {
@@ -62,20 +65,9 @@ export default function RegisterPage() {
   return (
     <main className="page">
       <div className="mx-auto max-w-md card">
-        <h2 className="text-xl font-semibold mb-4">Kayıt ol</h2>
+        <h2 className="text-xl font-semibold mb-4">Giriş yap</h2>
 
         <form onSubmit={onSubmit} className="grid-gap">
-          <label className="grid gap-1">
-            <span className="label">Ad Soyad</span>
-            <input
-              className="input"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              autoComplete="name"
-            />
-          </label>
-
           <label className="grid gap-1">
             <span className="label">E-posta</span>
             <input
@@ -96,7 +88,7 @@ export default function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              autoComplete="new-password"
+              autoComplete="current-password"
             />
           </label>
 
@@ -107,13 +99,20 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <button className="btn btn-primary mt-2" type="submit" disabled={loading || cooldown > 0}>
-            {loading ? "Kayıt yapılıyor…" : cooldown > 0 ? `Bekleyin (${cooldown})` : "Kayıt ol"}
+          <button
+            className="btn btn-primary mt-2"
+            type="submit"
+            disabled={loading || cooldown > 0}
+          >
+            {loading ? "Giriş yapılıyor…" : cooldown > 0 ? `Bekleyin (${cooldown})` : "Giriş yap"}
           </button>
         </form>
 
         <p className="mt-4 text-sm text-neutral-400">
-          Zaten üye misin? <Link className="link" href="/login">Giriş yap</Link>
+          Hesabın yok mu?{" "}
+          <Link className="link" href="/register">
+            Kayıt ol
+          </Link>
         </p>
       </div>
     </main>

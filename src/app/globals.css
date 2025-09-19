@@ -1,26 +1,23 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@layer base {
+  :root { color-scheme: dark; }
+  html, body { @apply bg-neutral-950 text-neutral-100; }
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .page { @apply min-h-[70vh] pb-12; }
+  .card { @apply border border-neutral-800 rounded-2xl bg-neutral-900/50 backdrop-blur p-5; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-800 px-4 py-2 font-medium transition hover:bg-neutral-800 disabled:opacity-50; }
+  .btn-primary { @apply bg-indigo-600 border-indigo-500 text-white hover:bg-indigo-500; }
+  .btn-ghost { @apply border-transparent hover:bg-neutral-800; }
+  .input { @apply w-full rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2 outline-none focus:ring focus:ring-indigo-500/30; }
+  .label { @apply text-sm text-neutral-400; }
+  .nav { @apply flex items-center gap-2 text-sm text-neutral-400; }
+  .chip { @apply px-2 py-0.5 rounded-full border border-neutral-800 bg-neutral-900 text-xs; }
+  .link { @apply text-indigo-400 hover:text-indigo-300 underline-offset-4 hover:underline; }
+  .grid-gap { @apply grid gap-3; }
+  .bubble { @apply mt-1 rounded-2xl border border-neutral-800 px-3 py-2; }
+  .bubble-me { @apply bg-black text-white; }
+  .date-sep { @apply mx-auto w-fit px-3 py-1 text-xs text-neutral-400 border border-neutral-800 rounded-full bg-neutral-950 sticky top-0 z-10; }
 }

@@ -1,14 +1,71 @@
-type Bucket = { tokens: number; updatedAt: number };
-const buckets = new Map<string, Bucket>();
-const WINDOW_MS = 60_000, MAX_TOKENS = 20;
+type Bucket = { tokens: number; resetAt: number };
 
-export function rateLimit(key: string) {
+// In-memory store
+const buckets = new Map<string, Bucket>();
+
+// Yardımcılar
+function parseWindowMs(window: `${number}${"s" | "m" | "h"}` | number) {
+  if (typeof window === "number") return window;
+  const n = parseInt(window);
+  const unit = window.slice(-1);
+  const mul = unit === "s" ? 1_000 : unit === "m" ? 60_000 : 3_600_000;
+  return n * mul;
+}
+
+function ipFrom(req: Request) {
+  const h = req.headers;
+  const fwd = h.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return fwd || h.get("x-real-ip") || "127.0.0.1";
+}
+
+export type RateResult = {
+  ok: boolean;
+  headers: Record<string, string>;
+};
+
+/**
+ * Düşük seviyeli: key’e göre token-bucket.
+ * limit: pencere başına izinli istek sayısı
+ * window: "60s" | "1m" | "1h" veya ms cinsinden number
+ */
+export function rateLimitKey(
+  key: string,
+  { limit, window }: { limit: number; window: `${number}${"s" | "m" | "h"}` | number }
+): RateResult {
   const now = Date.now();
-  const b = buckets.get(key) ?? { tokens: MAX_TOKENS, updatedAt: now };
-  const elapsed = now - b.updatedAt;
-  const refill = Math.floor(elapsed / WINDOW_MS) * MAX_TOKENS;
-  b.tokens = Math.min(MAX_TOKENS, b.tokens + (refill > 0 ? refill : 0));
-  b.updatedAt = now;
-  if (b.tokens <= 0) return false;
-  b.tokens -= 1; buckets.set(key, b); return true;
+  const windowMs = parseWindowMs(window);
+
+  let b = buckets.get(key);
+  if (!b || b.resetAt <= now) {
+    b = { tokens: limit, resetAt: now + windowMs };
+    buckets.set(key, b);
+  }
+
+  const remaining = Math.max(0, b.tokens - 1);
+  const ok = b.tokens > 0;
+  if (ok) b.tokens = remaining;
+
+  const resetSec = Math.ceil((b.resetAt - now) / 1000);
+  return {
+    ok,
+    headers: {
+      "X-RateLimit-Limit": String(limit),
+      "X-RateLimit-Remaining": String(remaining),
+      "X-RateLimit-Reset": String(resetSec),
+    },
+  };
+}
+
+/**
+ * Yüksek seviyeli: Request’e göre (IP + pathname) rate-limit.
+ * Aynı IP’nin aynı endpoint’e vurmasını sınırlar.
+ */
+export function rateLimitReq(
+  req: Request,
+  { limit, window, key }: { limit: number; window: `${number}${"s" | "m" | "h"}` | number; key?: string }
+): RateResult {
+  const url = new URL(req.url);
+  const ip = ipFrom(req);
+  const k = key ?? `${ip}:${url.pathname}`;
+  return rateLimitKey(k, { limit, window });
 }
